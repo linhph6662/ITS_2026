@@ -19,7 +19,7 @@ from ui.theme import (
     BG, HDR, PANEL, DIV, TXT, DIM, LBL, AMBER, GREEN, YELLOW, RED, TEAL,
     CYAN, ROI_CLR, ALT_ROW,
     FONT, FONTD,
-    fillr, bordr, hline, vline, put, put_right, put_center,
+    fillr, bordr, hline, vline, put, put_right, put_center, get_text_width
 )
 
 MODEL_PATH = "config/yolo26n.pt"
@@ -45,7 +45,7 @@ def _do_export(tracker: VehicleTracker) -> None:
     log   = tracker.get_vehicle_log()
     stats = tracker.get_statistics()
     if not log:
-        print("[WARN] No vehicle data to export yet.")
+        print("[WARN] No vehicle data to export yet. Hãy đợi xe đi qua hoặc thoát khỏi ROI.")
         return
     try:
         data = export_to_excel(log, stats)
@@ -54,7 +54,9 @@ def _do_export(tracker: VehicleTracker) -> None:
             f.write(data)
         print(f"[OK]   Report saved → {os.path.abspath(path)}")
     except Exception as exc:
+        import traceback
         print(f"[ERR]  Export failed: {exc}")
+        traceback.print_exc()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -90,17 +92,17 @@ def _frame_to_canvas(fx: float, fy: float, scale: float, ox: int, oy: int) -> tu
 def _draw_header(canvas: np.ndarray, video_name: str, is_paused: bool) -> None:
     fillr(canvas, 0, 0, WIN_W, HEADER_H, HDR)
     hline(canvas, 0, WIN_W, HEADER_H, AMBER, 2)
-    put(canvas, "VEHICLE ANALYSIS SYSTEM", 14, 25, TXT, 0.52, 1, FONTD)
+    put(canvas, "VEHICLE ANALYSIS SYSTEM", 20, 36, TXT, 0.65, 1, FONTD)
 
     dot_color   = YELLOW if is_paused else GREEN
     status_text = "PAUSED" if is_paused else "LIVE"
-    put(canvas, "●",          268, 25, dot_color, 0.50)
-    put(canvas, status_text,  286, 25, dot_color, 0.38)
+    put(canvas, "●",          520, 36, dot_color, 0.60)
+    put(canvas, status_text,  550, 36, dot_color, 0.45)
 
     bname = os.path.basename(video_name)
     if len(bname) > 50:
         bname = bname[:48] + ".."
-    put_right(canvas, bname, WIN_W - 14, 25, DIM, 0.37)
+    put_right(canvas, bname, WIN_W - 20, 36, DIM, 0.45)
 
 
 def _draw_video_panel(canvas: np.ndarray, frame, roi_mode: bool,
@@ -135,59 +137,59 @@ def _draw_video_panel(canvas: np.ndarray, frame, roi_mode: bool,
         n   = len(roi_mode_points) if roi_mode_points else 0
         msg = (f"  ROI MODE — Click điểm {n + 1}/4 (TL→TR→BR→BL)  "
                if n < 4 else "  ROI SET — Nhấn [C] để xóa  ")
-        tw  = cv2.getTextSize(msg, FONT, 0.45, 1)[0][0]
+        tw  = get_text_width(msg, 0.55, 1)
         bx  = VIDEO_W // 2
-        fillr(canvas, bx - tw // 2 - 8, HEADER_H + 6,
-                      bx + tw // 2 + 8, HEADER_H + 28, (0, 60, 120))
-        put_center(canvas, msg, bx, HEADER_H + 23, CYAN, 0.45, 1)
+        fillr(canvas, bx - tw // 2 - 12, HEADER_H + 10,
+                      bx + tw // 2 + 12, HEADER_H + 40, (0, 60, 120))
+        put_center(canvas, msg, bx, HEADER_H + 32, CYAN, 0.55, 1)
 
 
 def _draw_stat_panel(canvas: np.ndarray, stats: dict, vehicle_log: list) -> None:
     """Vẽ panel thống kê và log xe bên phải."""
     SX, SW = STAT_X, STAT_W
-    PX     = SX + 14
-    PW     = SW - 28
+    PX     = SX + 18
+    PW     = SW - 36
 
     fillr(canvas, SX, HEADER_H, WIN_W, HEADER_H + CONTENT_H, PANEL)
     vline(canvas, SX, HEADER_H, HEADER_H + CONTENT_H, DIV)
 
-    py = HEADER_H + 12
+    py = HEADER_H + 16
 
     # ── Tổng xe ──────────────────────────────────────────────────────────────
     total = stats.get("total", 0)
-    fillr(canvas, PX, py, PX + PW, py + 54, HDR)
-    put(canvas, "Total Vehicles", PX + 10, py + 15, LBL, 0.36)
-    put(canvas, str(total),       PX + 10, py + 47, AMBER, 0.92, 2, FONTD)
-    py += 60
+    fillr(canvas, PX, py, PX + PW, py + 120, HDR)
+    put(canvas, "Total Vehicles", PX + 16, py + 30, LBL, 0.50)
+    put(canvas, str(total),       PX + 16, py + 110, AMBER, 1.40, 2, FONTD)
+    py += 130
 
     # ── Lưới tốc độ 1×3 ──────────────────────────────────────────────────────
-    third = (PW - 12) // 3
+    third = (PW - 16) // 3
     cells = [
         ("Avg Speed", f"{stats.get('avg_speed', 0):.1f}", "km/h", TXT),
         ("Max Speed", f"{stats.get('max_speed', 0):.1f}", "km/h", RED),
         ("Min Speed", f"{stats.get('min_speed', 0):.1f}", "km/h", GREEN),
     ]
     for i, (label, value, unit, val_color) in enumerate(cells):
-        gx = PX + i * (third + 6)
-        fillr(canvas, gx, py, gx + third, py + 54, HDR)
-        put(canvas, label, gx + 8, py + 14, LBL,       0.30)
-        put(canvas, value, gx + 8, py + 38, val_color,  0.58, 1, FONTD)
-        put(canvas, unit,  gx + 8, py + 50, DIM,        0.28)
-    py += 62
+        gx = PX + i * (third + 8)
+        fillr(canvas, gx, py, gx + third, py + 120, HDR)
+        put(canvas, label, gx + 12, py + 30, LBL,       0.45)
+        put(canvas, value, gx + 12, py + 85, val_color,  0.90, 2, FONTD)
+        put(canvas, unit,  gx + 12, py + 115, DIM,        0.40)
+    py += 130
 
     # ── Vehicle Log ───────────────────────────────────────────────────────────
-    put(canvas, "VEHICLE LOG", PX, py, LBL, 0.35)
-    hline(canvas, PX, SX + SW - 14, py + 7, DIV)
-    py += 18
+    put(canvas, "VEHICLE LOG", PX, py + 35, LBL, 0.55)
+    hline(canvas, PX, SX + SW - 20, py + 48, DIV)
+    py += 58
 
-    fillr(canvas, PX, py, PX + PW, py + 18, HDR)
-    for col_label, x_off in [("ID", 2), ("TYPE", 28), ("ENTRY", 108),
-                              ("EXIT", 168), ("SPD", 224)]:
-        put(canvas, col_label, PX + x_off, py + 13, DIM, 0.30)
-    hline(canvas, PX, PX + PW, py + 18, DIV)
-    py += 22
+    fillr(canvas, PX, py, PX + PW, py + 40, HDR)
+    for col_label, x_off in [("ID", 10), ("TYPE", 80), ("ENTRY", 240),
+                              ("EXIT", 420), ("SPD", 620)]:
+        put(canvas, col_label, PX + x_off, py + 28, DIM, 0.45)
+    hline(canvas, PX, PX + PW, py + 40, DIV)
+    py += 44
 
-    ROW_H        = 20
+    ROW_H        = 44
     panel_bottom = HEADER_H + CONTENT_H - 6
     max_rows     = max(0, (panel_bottom - py) // ROW_H)
     display_log  = list(reversed(vehicle_log[-max_rows:])) if vehicle_log else []
@@ -200,42 +202,65 @@ def _draw_stat_panel(canvas: np.ndarray, stats: dict, vehicle_log: list) -> None
             fillr(canvas, PX, ry, PX + PW, ry + ROW_H, ALT_ROW)
         spd       = entry.get("max_speed", 0.0)
         spd_color = RED if spd > 100 else YELLOW if spd > 60 else GREEN
-        put(canvas, str(entry.get("id", "?")),          PX + 2,   ry + 14, TEAL,      0.32)
-        put(canvas, str(entry.get("type", "?"))[:10],   PX + 28,  ry + 14, TXT,       0.32)
-        put(canvas, str(entry.get("entry_time", "--")), PX + 108, ry + 14, DIM,       0.30)
-        put(canvas, str(entry.get("exit_time",  "--")), PX + 168, ry + 14, DIM,       0.30)
-        put(canvas, f"{spd:.1f}",                       PX + 224, ry + 14, spd_color, 0.32)
+        put(canvas, str(entry.get("id", "?")),          PX + 10,  ry + 30, TEAL,      0.48)
+        put(canvas, str(entry.get("type", "?"))[:10],   PX + 80,  ry + 30, TXT,       0.48)
+        put(canvas, str(entry.get("entry_time", "--")), PX + 240, ry + 30, DIM,       0.45)
+        put(canvas, str(entry.get("exit_time",  "--")), PX + 420, ry + 30, DIM,       0.45)
+        put(canvas, f"{spd:.1f}",                       PX + 620, ry + 30, spd_color, 0.48)
 
     hline(canvas, SX, WIN_W, HEADER_H + CONTENT_H, DIV)
 
 
 def _draw_statusbar(canvas: np.ndarray, frame_num: int, total_frames: int,
-                    fps_real: float, roi_active: bool) -> None:
-    """Vẽ thanh trạng thái dưới cùng."""
+                    fps_real: float, roi_active: bool, is_paused: bool) -> list:
+    """Vẽ thanh trạng thái dưới cùng và các nút chức năng."""
     SY = WIN_H - STATUSBAR_H
     fillr(canvas, 0, SY, WIN_W, WIN_H, HDR)
     hline(canvas, 0, WIN_W, SY, DIV)
 
     pct = frame_num / total_frames * 100 if total_frames > 0 else 0.0
     put(canvas, f"Frame {frame_num:,} / {total_frames:,}   {pct:.1f}%",
-        14, SY + 21, TXT, 0.37)
+        20, SY + 36, TXT, 0.45)
 
     # Progress bar
-    BAR_X1, BAR_X2 = 270, 460
-    BAR_Y = SY + 15
-    fillr(canvas, BAR_X1, BAR_Y, BAR_X2, BAR_Y + 6, DIV)
+    BAR_X1, BAR_X2 = 380, 640
+    BAR_Y = SY + 26
+    fillr(canvas, BAR_X1, BAR_Y, BAR_X2, BAR_Y + 8, DIV)
     fill_w = int((BAR_X2 - BAR_X1) * min(pct / 100.0, 1.0))
     if fill_w > 0:
-        fillr(canvas, BAR_X1, BAR_Y, BAR_X1 + fill_w, BAR_Y + 6, AMBER)
+        fillr(canvas, BAR_X1, BAR_Y, BAR_X1 + fill_w, BAR_Y + 8, AMBER)
 
-    put(canvas, f"FPS {fps_real:.1f}", 470, SY + 21, GREEN, 0.37)
+    put(canvas, f"FPS {fps_real:.1f}", 660, SY + 36, GREEN, 0.45)
 
     if roi_active:
-        put(canvas, "ROI ✓", 530, SY + 21, CYAN, 0.37)
+        put(canvas, "ROI ✓", 760, SY + 36, CYAN, 0.45)
 
-    put_right(canvas,
-              "[P] Pause  [D] Vẽ ROI  [C] Xóa ROI  [R] Chọn lại  [E] Export  [Q] Thoát",
-              WIN_W - 14, SY + 21, DIM, 0.30)
+    # Nút bấm
+    buttons = []
+    actions = [
+        ("pause", "Resume" if is_paused else "Pause"),
+        ("draw_roi", "Vẽ ROI"),
+        ("clear_roi", "Xóa ROI"),
+        ("reselect", "Chọn lại"),
+        ("export", "Export"),
+        ("quit", "Thoát")
+    ]
+    
+    bx = WIN_W - 20
+    for act, label in reversed(actions):
+        tw = get_text_width(label, 0.45, 1)
+        bw = tw + 40
+        bh = 46
+        by = SY + 7
+        bx -= bw
+        
+        fillr(canvas, bx, by, bx + bw, by + bh, PANEL)
+        bordr(canvas, bx, by, bx + bw, by + bh, DIV)
+        put_center(canvas, label, bx + bw // 2, by + 30, TXT, 0.45)
+        buttons.append({"action": act, "rect": (bx, by, bx + bw, by + bh)})
+        bx -= 12  # khoảng cách giữa các nút
+        
+    return buttons
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -246,14 +271,14 @@ def build_dashboard(ann_frame, stats: dict, vehicle_log: list,
                     frame_num: int, total_frames: int, fps_real: float,
                     is_paused: bool, video_name: str,
                     roi_mode: bool = False, roi_mode_points: list = None,
-                    roi_active: bool = False) -> np.ndarray:
-    """Tổng hợp toàn bộ dashboard vào 1 canvas và trả về."""
+                    roi_active: bool = False) -> tuple:
+    """Tổng hợp toàn bộ dashboard vào 1 canvas và trả về (canvas, buttons)."""
     canvas = np.zeros((WIN_H, WIN_W, 3), dtype=np.uint8)
     _draw_header(canvas, video_name, is_paused)
     _draw_video_panel(canvas, ann_frame, roi_mode, roi_mode_points or [])
     _draw_stat_panel(canvas, stats, vehicle_log)
-    _draw_statusbar(canvas, frame_num, total_frames, fps_real, roi_active)
-    return canvas
+    buttons = _draw_statusbar(canvas, frame_num, total_frames, fps_real, roi_active, is_paused)
+    return canvas, buttons
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -320,15 +345,15 @@ def run_dashboard(video_path: str, video_fps: float, total_frames: int) -> str:
 
             if not ok:
                 # ── Video kết thúc ────────────────────────────────────────────
-                canvas = build_dashboard(
+                canvas, buttons = build_dashboard(
                     last_frame, last_stats, last_log,
                     frame_num, total_frames, fps_real,
                     False, video_path,
                     roi_mode=roi_mode, roi_mode_points=roi_mode_points,
                     roi_active=roi_confirmed,
                 )
-                msg = "  PHÂN TÍCH HOÀN TẤT — E: Export    R: Chọn lại    Q: Thoát  "
-                tw  = cv2.getTextSize(msg, FONT, 0.48, 1)[0][0]
+                msg = "  PHÂN TÍCH HOÀN TẤT — Vui lòng dùng các nút bên dưới  "
+                tw  = get_text_width(msg, 0.48, 1)
                 mx  = VIDEO_W // 2
                 my  = HEADER_H + CONTENT_H // 2
                 fillr(canvas, mx - tw // 2 - 10, my - 22,
@@ -338,14 +363,29 @@ def run_dashboard(video_path: str, video_fps: float, total_frames: int) -> str:
 
                 while True:
                     k = cv2.waitKeyEx(100)
-                    if k in (ord("q"), ord("Q")):
+                    
+                    action = None
+                    if k in (ord("q"), ord("Q")): action = "quit"
+                    elif k in (ord("e"), ord("E")): action = "export"
+                    elif k in (ord("r"), ord("R")): action = "reselect"
+                    
+                    if dmouse.clicked:
+                        dmouse.clicked = False
+                        for btn in buttons:
+                            x1, y1, x2, y2 = btn["rect"]
+                            if x1 <= dmouse.x <= x2 and y1 <= dmouse.y <= y2:
+                                action = btn["action"]
+                                break
+                    
+                    if action == "quit":
                         cap.release(); cv2.destroyAllWindows()
                         return "quit"
-                    if k in (ord("e"), ord("E")):
+                    elif action == "export":
                         _do_export(tracker)
-                    if k in (ord("r"), ord("R")):
+                    elif action == "reselect":
                         cap.release(); cv2.destroyAllWindows()
                         return "reselect"
+
                     try:
                         if cv2.getWindowProperty(WIN_NAME, cv2.WND_PROP_VISIBLE) < 1:
                             cap.release(); cv2.destroyAllWindows()
@@ -368,10 +408,11 @@ def run_dashboard(video_path: str, video_fps: float, total_frames: int) -> str:
                 last_log   = tracker.get_vehicle_log()
 
         # ── Xử lý click vẽ ROI ───────────────────────────────────────────────
-        if dmouse.clicked:
-            dmouse.clicked = False
-            if roi_mode and len(roi_mode_points) < 4 and last_raw is not None:
-                scale, ox, oy, nw, nh = _get_video_transform(last_raw)
+        if dmouse.clicked and roi_mode and len(roi_mode_points) < 4 and last_raw is not None:
+            scale, ox, oy, nw, nh = _get_video_transform(last_raw)
+            # Only consume if clicked inside video panel area
+            if ox <= dmouse.x <= ox + nw and oy <= dmouse.y <= oy + nh:
+                dmouse.clicked = False
                 fx, fy = _canvas_to_frame(dmouse.x, dmouse.y, scale, ox, oy)
                 fh, fw = last_raw.shape[:2]
                 if 0 <= fx <= fw and 0 <= fy <= fh:
@@ -384,7 +425,7 @@ def run_dashboard(video_path: str, video_fps: float, total_frames: int) -> str:
                         print("[ROI]  4 điểm đã set — perspective transform kích hoạt.")
 
         # ── Render dashboard ─────────────────────────────────────────────────
-        canvas = build_dashboard(
+        canvas, buttons = build_dashboard(
             last_frame, last_stats, last_log,
             frame_num, total_frames, fps_real,
             is_paused, video_path,
@@ -397,16 +438,31 @@ def run_dashboard(video_path: str, video_fps: float, total_frames: int) -> str:
         elapsed = time.time() - t_prev
         wait_ms = max(1, int((frame_delay - elapsed) * 1000))
         key     = cv2.waitKeyEx(wait_ms)
+        
+        # ── Xử lý click trên các nút ──────────────────────────────────────────
+        action = None
+        if dmouse.clicked:
+            # We already handled ROI points click earlier, but it clears dmouse.clicked.
+            # Wait, dmouse.clicked was set to False above in ROI handling! 
+            # We should check button clicks first or don't clear it.
+            # Actually, ROI click check is conditional. Let's just re-check here.
+            # I will fix this in the next replacement block or here.
+            for btn in buttons:
+                x1, y1, x2, y2 = btn["rect"]
+                if x1 <= dmouse.x <= x2 and y1 <= dmouse.y <= y2:
+                    action = btn["action"]
+                    dmouse.clicked = False
+                    break
 
         # ── Key handling ──────────────────────────────────────────────────────
-        if key in (ord("q"), ord("Q")):
+        if key in (ord("q"), ord("Q")) or action == "quit":
             break
 
-        elif key in (ord("p"), ord("P")):
+        elif key in (ord("p"), ord("P")) or action == "pause":
             is_paused = not is_paused
             print(f"[INFO] {'PAUSED' if is_paused else 'RESUMED'}")
 
-        elif key in (ord("d"), ord("D")):
+        elif key in (ord("d"), ord("D")) or action == "draw_roi":
             if not roi_mode:
                 roi_mode        = True
                 roi_mode_points = []
@@ -419,18 +475,18 @@ def run_dashboard(video_path: str, video_fps: float, total_frames: int) -> str:
                 roi_mode = False
                 print("[ROI]  Chế độ vẽ ROI TẮT.")
 
-        elif key in (ord("c"), ord("C")):
+        elif key in (ord("c"), ord("C")) or action == "clear_roi":
             roi_mode        = False
             roi_mode_points = []
             roi_confirmed   = False
             tracker.clear_roi()
             print("[ROI]  ROI đã xóa.")
 
-        elif key in (ord("r"), ord("R")):
+        elif key in (ord("r"), ord("R")) or action == "reselect":
             cap.release(); cv2.destroyAllWindows()
             return "reselect"
 
-        elif key in (ord("e"), ord("E")):
+        elif key in (ord("e"), ord("E")) or action == "export":
             _do_export(tracker)
 
         try:
