@@ -1,0 +1,14 @@
+# Cấu hình ByteTrack tracker cho Ultralytics YOLO
+tracker_type: bytetrack
+
+# Ngưỡng phát hiện
+track_high_thresh: 0.5    # Ngưỡng cao để khởi tạo track mới
+track_low_thresh: 0.1     # Ngưỡng thấp cho second association
+new_track_thresh: 0.6     # Ngưỡng tạo track mới
+
+# Thời gian giữ track — tăng lên để tránh mất ID khi xe bị che khuất
+track_buffer: 90          # 90 frame (~3s @ 30fps) giữ track khi mất detection
+
+# Matching — giảm để ghép track khi xe di chuyển nhanh
+match_thresh: 0.7         # IoU matching threshold (giảm từ 0.8)
+fuse_score: true          # Kết hợp confidence score với IoU
