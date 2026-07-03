@@ -1,7 +1,7 @@
 """
 main.py — Vehicle Tracking & Speed Measurement System
 Run:  python main.py
-Keys: P=Pause  D=Draw ROI  C=Clear ROI  R=Reselect  E=Export  Q=Quit
+Keys: P=Pause/Resume  Q=Quit. Các chức năng khác dùng nút bấm trên màn hình.
 """
 
 import os

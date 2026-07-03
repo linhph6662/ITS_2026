@@ -138,7 +138,7 @@ def export_to_excel(vehicle_log: list, stats: dict) -> bytes:
         columns = ["ID", "Loại Xe", "Thời Gian Vào", "Thời Gian Ra", "Tốc Độ Max (km/h)"]
 
         if vehicle_log:
-            df_log = pd.DataFrame(vehicle_log)
+            df_log = pd.DataFrame(vehicle_log, columns=["id", "type", "entry_time", "exit_time", "max_speed"])
             df_log.columns = columns
         else:
             df_log = pd.DataFrame(columns=columns)
