@@ -2,7 +2,7 @@
 ui/picker.py — Video selection screen.
 
 Hiển thị danh sách video trong thư mục VIDEO_DIR và cho phép người dùng chọn.
-Phím: J/K hoặc ↑/↓ điều hướng · Enter/Double-click xác nhận · Q thoát.
+Click để chọn · Click nút START để bắt đầu phân tích · Click Thoát để thoát.
 """
 
 import os
@@ -186,8 +186,7 @@ def _draw(canvas: np.ndarray, videos: list, sel: int, hov: int, scroll: int):
     fillr(canvas, 0, H - STATUSBAR_H, W, H, HDR)
     hline(canvas, 0, W, H - STATUSBAR_H, DIV)
     put(canvas,
-        "Click to select     Double-click / Enter to start"
-        "     J/K or ↑/↓ to navigate",
+        "Click để chọn video     Nhấn nút START để bắt đầu phân tích",
         20, H - 14, DIM, 0.45)
 
     # Nút Thoát
@@ -301,13 +300,12 @@ def run_picker() -> tuple:
                                 break
                 except Exception as e:
                     print(f"[ERR] Dialog failed: {e}")
-                
+
+            # Click vào danh sách video — chỉ chọn, không tự khởi động
             if hov >= 0:
-                if hov == sel:   # Double-click
-                    v = videos[sel]
-                    cv2.destroyAllWindows()
-                    return v["path"], v["fps"], v["frames"]
                 sel = hov
+
+            # Click nút START
             if bx1 <= ms.x <= bx2 and by1 <= ms.y <= by2 and 0 <= sel < len(videos):
                 v = videos[sel]
                 cv2.destroyAllWindows()
@@ -316,27 +314,10 @@ def run_picker() -> tuple:
         cv2.imshow(WIN_NAME, canvas)
         key = cv2.waitKeyEx(33)
 
+        # Chỉ giữ phím Q / ESC để thoát
         if key in (ord("q"), ord("Q"), 27):
             cv2.destroyAllWindows()
             return None, 0, 0
-
-        elif key in (13, 10):   # Enter
-            if 0 <= sel < len(videos):
-                v = videos[sel]
-                cv2.destroyAllWindows()
-                return v["path"], v["fps"], v["frames"]
-
-        elif key in (ord("k"), ord("K"), 2490368):   # K / Up arrow
-            if sel > 0:
-                sel -= 1
-                if sel < scroll:
-                    scroll = sel
-
-        elif key in (ord("j"), ord("J"), 2621440):   # J / Down arrow
-            if sel < len(videos) - 1:
-                sel += 1
-                if sel >= scroll + _MAX_VIS:
-                    scroll = sel - _MAX_VIS + 1
 
         try:
             if cv2.getWindowProperty(WIN_NAME, cv2.WND_PROP_VISIBLE) < 1:
