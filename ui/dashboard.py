@@ -45,7 +45,7 @@ def _do_export(tracker: VehicleTracker) -> None:
     log   = tracker.get_vehicle_log()
     stats = tracker.get_statistics()
     if not log:
-        print("[WARN] No vehicle data to export yet.")
+        print("[WARN] No vehicle data to export yet. Hãy đợi xe đi qua hoặc thoát khỏi ROI.")
         return
     try:
         data = export_to_excel(log, stats)
@@ -54,7 +54,9 @@ def _do_export(tracker: VehicleTracker) -> None:
             f.write(data)
         print(f"[OK]   Report saved → {os.path.abspath(path)}")
     except Exception as exc:
+        import traceback
         print(f"[ERR]  Export failed: {exc}")
+        traceback.print_exc()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
