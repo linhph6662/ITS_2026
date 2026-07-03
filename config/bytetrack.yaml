@@ -1,0 +1,26 @@
+# Cấu hình ByteTrack tracker — Tối ưu cho đường cao tốc
+# Không có xe máy/xe đạp, xe di chuyển tốc độ cao 60-120 km/h
+tracker_type: bytetrack
+
+# ── Ngưỡng phát hiện ─────────────────────────────────────────────────────────
+# Hạ thấp để bắt được xe từ xa và xe nhỏ trong khung hình
+track_high_thresh: 0.35    # Ngưỡng cao để khởi tạo track mới (mặc định 0.5)
+track_low_thresh: 0.10     # Ngưỡng thấp cho second association
+
+# Hạ thấp để dễ dàng tạo track khi xe lần đầu xuất hiện
+new_track_thresh: 0.40     # Ngưỡng tạo track mới (mặc định 0.6)
+
+# ── Bộ nhớ track ──────────────────────────────────────────────────────────────
+# Tăng lên để tránh mất ID khi xe bị che khuất bởi xe khác hoặc bóng đổ
+track_buffer: 120          # 120 frame (~4s @ 30fps) giữ track khi mất detection
+
+# ── Matching ──────────────────────────────────────────────────────────────────
+# Tăng match_thresh để ghép track chính xác hơn với xe tốc độ cao
+match_thresh: 0.80         # IoU matching threshold
+
+# Kết hợp confidence score với IoU để ghép track chính xác hơn
+fuse_score: true
+
+# ── Lọc nhiễu ────────────────────────────────────────────────────────────────
+# Bỏ qua detection quá nhỏ (thường là nhiễu, không phải xe ô tô/xe tải/bus)
+min_box_area: 400          # Diện tích tối thiểu bounding box (pixel^2)
