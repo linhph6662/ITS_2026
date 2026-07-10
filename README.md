@@ -29,7 +29,7 @@ ITS_2026 là hệ thống phân tích giao thông sử dụng thị giác máy t
 
 | Chức năng | Mô tả |
 |-----------|-------|
-| 🚗 **Phát hiện xe** | YOLOv8 nhận diện ô tô, xe buýt, xe tải trên đường cao tốc |
+| 🚗 **Phát hiện xe** | YOlO26 nhận diện ô tô, xe buýt, xe tải trên đường cao tốc |
 | 🔍 **Theo dõi xe** | ByteTrack duy trì ID ổn định cho từng xe qua nhiều frame |
 | 📐 **Đo tốc độ** | Perspective Transform + khoảng cách thực 12m → km/h |
 | 📊 **Thống kê** | Tổng xe, tốc độ tối đa/tối thiểu/trung bình theo thời gian thực |
@@ -98,7 +98,7 @@ Danh sách thư viện (`requirements.txt`):
 
 | Thư viện | Phiên bản | Mục đích |
 |----------|-----------|---------| 
-| `ultralytics` | ≥ 8.0.0 | YOLOv8 detection + ByteTrack |
+| `ultralytics` | ≥ 8.0.0 | YOlO26 detection + ByteTrack |
 | `opencv-python` | ≥ 4.8.0 | Xử lý video + giao diện |
 | `numpy` | ≥ 1.24.0 | Tính toán ma trận |
 | `pandas` | ≥ 2.0.0 | Xuất báo cáo |
@@ -889,7 +889,7 @@ A: Đảm bảo thư mục `report/` tồn tại và có quyền ghi. Kiểm tra
 | Thông tin | Chi tiết |
 |-----------|---------|
 | Ngôn ngữ | Python 3.10+ |
-| Detection | YOLOv8 (Ultralytics ≥ 8.0.0) |
+| Detection | YOlO26 (Ultralytics ≥ 8.0.0) |
 | Tracking | ByteTrack (tích hợp trong Ultralytics) |
 | Giao diện | OpenCV `cv2.imshow` — không dùng web framework |
 | Text rendering | PIL (Pillow) anti-aliased — không dùng `cv2.putText` |
