@@ -307,7 +307,7 @@ Khi khởi động, hệ thống hiển thị danh sách video trong thư mục 
 
 ### 6.2 Vẽ ROI — Bước quan trọng nhất
 
-Sau khi dashboard mở, nhấn nút **"Vẽ ROI"** (hoặc phím `D` nếu được hỗ trợ) để vào chế độ vẽ. **Video tự động dừng** khi ROI mode bật.
+Sau khi dashboard mở, nhấn nút **"Vẽ ROI"** (hoặc phím `D` nếu được hỗ trợ) để vào chế độ vẽ. **Video tự động dừng** (Do đầu vào là Video nên thiết kế để người dùng dễ sử dụng khi ROI mode bật.
 
 **ROI (Region of Interest)** là vùng đo tốc độ — phải được căn chỉnh chính xác với vạch sơn trắng trên đường.
 
@@ -317,8 +317,8 @@ Sau khi dashboard mở, nhấn nút **"Vẽ ROI"** (hoặc phím `D` nếu đư�
                     CHIỀU XA (phía trên ảnh)
     ┌──────────────────────────────────────────────┐
     │                                              │
-    │    ════════════════════════ ← vạch sơn TRÊN │
     │   P1(TL)─────────────────P2(TR)             │
+    │    ════════════════════════ ← vạch sơn TRÊN │
     │    │   vùng ROI 12m        │                │
     │   P4(BL)─────────────────P3(BR)             │
     │    ════════════════════════ ← vạch sơn DƯỚI │
