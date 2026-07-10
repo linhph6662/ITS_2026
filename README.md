@@ -163,10 +163,10 @@ ITS_2026/
 │   └── dashboard.py         # Dashboard phân tích chính
 │
 ├── video/                   # Thư mục chứa video đầu vào
-│   └── .gitkeep
+│  
 │
 ├── report/                  # Thư mục lưu báo cáo Excel (tự tạo)
-│   └── .gitkeep
+│  
 │
 ├── requirements.txt         # Danh sách thư viện
 ├── .gitignore
