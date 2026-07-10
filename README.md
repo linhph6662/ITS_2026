@@ -76,7 +76,7 @@ git clone <repo-url>
 cd ITS_2026
 ```
 
-### Bước 2 — Tạo môi trường ảo
+### Bước 2 — Tạo môi trường ảo ( Giúp tách bạch hệ thống/ Có thể dùng chính môi trường của máy tính)
 
 ```bash
 # Windows
